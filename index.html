@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMC Voucher Entry Portal</title>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    background:#fff;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    color:#003366;
+    margin-bottom:20px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+input, select, textarea{
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:5px;
+    font-size:15px;
+}
+
+textarea{
+    resize:vertical;
+}
+
+.full-width{
+    grid-column:1/3;
+}
+
+.btn-group{
+    margin-top:20px;
+    text-align:center;
+}
+
+button{
+    background:#003366;
+    color:white;
+    border:none;
+    padding:12px 25px;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+    margin:5px;
+}
+
+button:hover{
+    background:#0055aa;
+}
+
+.search-section{
+    margin-top:40px;
+    border-top:2px solid #ddd;
+    padding-top:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+table th, table td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:left;
+}
+
+table th{
+    background:#003366;
+    color:white;
+}
+
+.print-area{
+    display:none;
+}
+
+@media(max-width:768px){
+
+.form-grid{
+    grid-template-columns:1fr;
+}
+
+.full-width{
+    grid-column:1/2;
+}
+
+}
+
+@media print{
+
+body *{
+    visibility:hidden;
+}
+
+#printVoucher, #printVoucher *{
+    visibility:visible;
+}
+
+#printVoucher{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    padding:20px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>IMC Voucher Entry Portal</h1>
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Cashbook Page No</label>
+<input type="text" id="cashbookPage">
+</div>
+
+<div class="form-group">
+<label>Ref Page No</label>
+<input type="text" id="refPage">
+</div>
+
+<div class="form-group">
+<label>Ledger</label>
+<select id="ledger">
+<option value="">Select Ledger</option>
+<option>Civil</option>
+<option>Tool & Equipment</option>
+<option>Furniture & Fixture</option>
+<option>Material Consumable</option>
+<option>Misc Exp</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Date</label>
+<input type="date" id="voucherDate">
+</div>
+
+<div class="form-group full-width">
+<label>Payment Made To</label>
+<textarea id="paymentTo" rows="3"></textarea>
+</div>
+
+<div class="form-group full-width">
+<label>Description of Payment</label>
+<textarea id="description" rows="4"></textarea>
+</div>
+
+<div class="form-group">
+<label>Mode of Payment</label>
+<select id="paymentMode">
+<option value="">Select</option>
+<option>Cheque</option>
+<option>Cash</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Cheque No</label>
+<input type="text" id="chequeNo">
+</div>
+
+<div class="form-group">
+<label>Cheque Date</label>
+<input type="date" id="chequeDate">
+</div>
+
+<div class="form-group">
+<label>Amount of Payment</label>
+<input type="number" id="amount">
+</div>
+
+</div>
+
+<div class="btn-group">
+<button onclick="saveData()">Save Voucher</button>
+<button onclick="printVoucher()">Print Voucher</button>
+</div>
+
+<div class="search-section">
+
+<h2>Search Voucher</h2>
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Search By Date</label>
+<input type="date" id="searchDate">
+</div>
+
+<div class="form-group">
+<label>Search By Ledger</label>
+<select id="searchLedger">
+<option value="">Select Ledger</option>
+<option>Civil</option>
+<option>Tool & Equipment</option>
+<option>Furniture & Fixture</option>
+<option>Material Consumable</option>
+<option>Misc Exp</option>
+</select>
+</div>
+
+</div>
+
+<div class="btn-group">
+<button onclick="searchVoucher()">Search</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Ledger</th>
+<th>Payment To</th>
+<th>Amount</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="searchResults">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<!-- PRINT SECTION -->
+
+<div id="printVoucher" class="print-area">
+
+<h2 style="text-align:center;">
+Institute Management Committee<br>
+Industrial Training Institute (W) Ropar
+</h2>
+
+<p>
+<strong>CASH BOOK PAGE NO :</strong>
+<span id="p_cashbook"></span>
+
+&nbsp;&nbsp;&nbsp;
+
+<strong>REF PAGE NO :</strong>
+<span id="p_ref"></span>
+</p>
+
+<hr>
+
+<p>
+<strong>LEDGER :</strong>
+<span id="p_ledger"></span>
+
+&nbsp;&nbsp;&nbsp;
+
+<strong>Date :</strong>
+<span id="p_date"></span>
+</p>
+
+<p>
+<strong>Payment made to :</strong><br>
+<span id="p_paymentTo"></span>
+</p>
+
+<p>
+<strong>Description of Payment :</strong><br>
+<span id="p_description"></span>
+</p>
+
+<p>
+<strong>Mode of Payment :</strong>
+<span id="p_mode"></span>
+</p>
+
+<p>
+<strong>Cheque No :</strong>
+<span id="p_cheque"></span>
+</p>
+
+<p>
+<strong>Cheque Date :</strong>
+<span id="p_chequeDate"></span>
+</p>
+
+<h3>
+Amount : Rs. <span id="p_amount"></span>
+</h3>
+
+<br><br>
+
+<table style="width:100%; border:none;">
+
+<tr style="border:none;">
+
+<td style="border:none;">Prepared By</td>
+<td style="border:none;">Member IMC</td>
+<td style="border:none;">Office Incharge</td>
+<td style="border:none;">Secretary IMC</td>
+
+</tr>
+
+</table>
+
+</div>
+
+<!-- FIREBASE -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+push,
+set,
+get,
+child
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyAFzzfRmEi0VF9rxJ8gaajkq9ZC72l1Hng",
+authDomain: "mericlass2526.firebaseapp.com",
+databaseURL: "https://mericlass2526-default-rtdb.firebaseio.com",
+projectId: "mericlass2526",
+storageBucket: "mericlass2526.firebasestorage.app",
+messagingSenderId: "921192791859",
+appId: "1:921192791859:web:5b046d603d0d7c69e90846",
+measurementId: "G-45DGD8TJVG"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.saveData = function(){
+
+const data = {
+
+cashbookPage: document.getElementById("cashbookPage").value,
+refPage: document.getElementById("refPage").value,
+ledger: document.getElementById("ledger").value,
+voucherDate: document.getElementById("voucherDate").value,
+paymentTo: document.getElementById("paymentTo").value,
+description: document.getElementById("description").value,
+paymentMode: document.getElementById("paymentMode").value,
+chequeNo: document.getElementById("chequeNo").value,
+chequeDate: document.getElementById("chequeDate").value,
+amount: document.getElementById("amount").value
+
+};
+
+const newRef = push(ref(db,"vouchers"));
+
+set(newRef,data)
+.then(()=>{
+
+alert("Voucher Saved Successfully");
+
+})
+.catch((error)=>{
+
+alert(error);
+
+});
+
+};
+
+window.printVoucher = function(){
+
+document.getElementById("p_cashbook").innerText =
+document.getElementById("cashbookPage").value;
+
+document.getElementById("p_ref").innerText =
+document.getElementById("refPage").value;
+
+document.getElementById("p_ledger").innerText =
+document.getElementById("ledger").value;
+
+document.getElementById("p_date").innerText =
+document.getElementById("voucherDate").value;
+
+document.getElementById("p_paymentTo").innerText =
+document.getElementById("paymentTo").value;
+
+document.getElementById("p_description").innerText =
+document.getElementById("description").value;
+
+document.getElementById("p_mode").innerText =
+document.getElementById("paymentMode").value;
+
+document.getElementById("p_cheque").innerText =
+document.getElementById("chequeNo").value;
+
+document.getElementById("p_chequeDate").innerText =
+document.getElementById("chequeDate").value;
+
+document.getElementById("p_amount").innerText =
+document.getElementById("amount").value;
+
+window.print();
+
+};
+
+window.searchVoucher = function(){
+
+const searchDate =
+document.getElementById("searchDate").value;
+
+const searchLedger =
+document.getElementById("searchLedger").value;
+
+const results =
+document.getElementById("searchResults");
+
+results.innerHTML = "";
+
+get(ref(db,"vouchers"))
+.then((snapshot)=>{
+
+snapshot.forEach((childSnapshot)=>{
+
+const data = childSnapshot.val();
+
+if(
+(data.voucherDate === searchDate || searchDate === "")
+&&
+(data.ledger === searchLedger || searchLedger === "")
+){
+
+results.innerHTML += `
+<tr>
+<td>${data.voucherDate}</td>
+<td>${data.ledger}</td>
+<td>${data.paymentTo}</td>
+<td>${data.amount}</td>
+<td>
+<button onclick='loadVoucher(${JSON.stringify(data)})'>
+Print
+</button>
+</td>
+</tr>
+`;
+
+}
+
+});
+
+});
+
+};
+
+window.loadVoucher = function(data){
+
+document.getElementById("cashbookPage").value =
+data.cashbookPage;
+
+document.getElementById("refPage").value =
+data.refPage;
+
+document.getElementById("ledger").value =
+data.ledger;
+
+document.getElementById("voucherDate").value =
+data.voucherDate;
+
+document.getElementById("paymentTo").value =
+data.paymentTo;
+
+document.getElementById("description").value =
+data.description;
+
+document.getElementById("paymentMode").value =
+data.paymentMode;
+
+document.getElementById("chequeNo").value =
+data.chequeNo;
+
+document.getElementById("chequeDate").value =
+data.chequeDate;
+
+document.getElementById("amount").value =
+data.amount;
+
+printVoucher();
+
+};
+
+</script>
+
+</body>
+</html>
